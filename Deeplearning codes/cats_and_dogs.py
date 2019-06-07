@@ -11,6 +11,7 @@ import tensorflow as tf
 import numpy as np
 import cv2 
 import os
+import random
 
 
 ##Parameters required for the model##
@@ -20,7 +21,7 @@ width=100
 all_classes = os.listdir(data_path)
 number_of_classes = len(all_classes)
 color_channels=3
-epochs=300
+epochs=10
 batch_size=10
 batch_counter=0
 model_save_name='/home/predator/checkpoints'
@@ -147,18 +148,22 @@ def trainer(network,no_of_images):
 	optimizer=tf.train.AdamOptimizer().minimize(cost)
 	#print(optimizer+"\n")
 	with tf.Session() as sess:
+		print("\nSession Initialised")
 		sess.run(tf.global_variables_initializer())
 		writer = tf.summary.FileWriter(model_save_name, graph=tf.get_default_graph())
 		merged = tf.summary.merge_all()
 		saver = tf.train.Saver(max_to_keep=4)
 		counter=0
 		for epoch in range(epochs):
+			print("\n Epoch Started")
 			tools = utils()
 			for batch in range(int(number_of_images / batch_size)):
+				print("\nBATCH Processeing started")
 				counter+=1
 				images, labels = tools.batch_dispatch()
 				if images == None:
 					break
+			#	print("\nPRINTING ERROR")
 				loss,summary = sess.run([cost,merged], feed_dict={images_ph: images, labels_ph: labels})
 				print('loss', loss)
 				sess.run(optimizer, feed_dict={images_ph: images, labels_ph: labels})
@@ -167,9 +172,11 @@ def trainer(network,no_of_images):
 				writer.add_summary(summary,counter)
 			saver.save(sess, model_save_name)
 
+
 if __name__=="__main__":
 	#global network
 	print("\nMAIN FUNCTION HAS BEEN ENTERED")
 	tools=utils()
-	number_of_images = sum([len(files) for r, d, files in os.walk("data")])
+	number_of_images = sum([len(files) for r, d, files in os.walk("/home/predator/data")])
 	trainer(network,number_of_images)
+	print("\n---------------------------Training Over---------------------------")
